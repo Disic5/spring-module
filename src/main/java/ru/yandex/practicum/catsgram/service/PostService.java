@@ -35,6 +35,14 @@ public class PostService {
         return post;
     }
 
+    public Post findById(long id) {
+        return posts.values()
+                .stream()
+                .filter(post -> post.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("id is not found"));
+    }
+
     public Post update(Post newPost) {
         if (newPost.getId() == null) {
             throw new ConditionsNotMetException("Id должен быть указан");
