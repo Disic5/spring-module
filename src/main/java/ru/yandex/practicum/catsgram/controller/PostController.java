@@ -14,8 +14,10 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping
-    public Collection<Post> findAll() {
-        return postService.findAll();
+    public Collection<Post> findAll(@RequestParam(required = false) String sort,
+                                    @RequestParam(defaultValue = "10") int size,
+                                    @RequestParam(defaultValue = "0") int from) {
+        return postService.findAll(sort, size, from);
     }
 
     @PostMapping

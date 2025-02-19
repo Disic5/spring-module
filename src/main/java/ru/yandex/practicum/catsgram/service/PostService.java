@@ -7,9 +7,7 @@ import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.Post;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -17,8 +15,25 @@ public class PostService {
     private final UserService userService;
     private final Map<Long, Post> posts = new HashMap<>();
 
-    public Collection<Post> findAll() {
-        return posts.values();
+    public Collection<Post> findAll(String sort, Integer size, Integer from) {
+        var validSize = (size == null || size > 10) ? 10 : size;
+        var validFrom = (from == null || from < 0) ? 0 : from;
+        SortOrder sortOrder = sort == null ? SortOrder.ASCENDING : SortOrder.from(sort);
+        Comparator<Post> comparator = Comparator.comparing(Post::getPostDate);
+        if (sortOrder == SortOrder.DESCENDING) {
+            comparator = comparator.reversed();
+        }
+
+        List<Post> sortedPosts = posts.values().stream().sorted(comparator).toList();
+
+        // Проверка: если `from` больше количества постов, корректируем его
+        if (validFrom >= sortedPosts.size()) {
+            validFrom = Math.max(0, sortedPosts.size() - validSize);
+        }
+        return sortedPosts.stream()
+                .skip(validFrom)
+                .limit(validSize)
+                .toList();
     }
 
     public Post create(Post post) throws ConditionsNotMetException {
