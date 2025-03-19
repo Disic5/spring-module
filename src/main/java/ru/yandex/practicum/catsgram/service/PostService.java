@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
+import ru.yandex.practicum.catsgram.exception.ParameterNotValidException;
 import ru.yandex.practicum.catsgram.model.Post;
 
 import java.time.Instant;
@@ -16,9 +17,15 @@ public class PostService {
     private final Map<Long, Post> posts = new HashMap<>();
 
     public Collection<Post> findAll(String sort, Integer size, Integer from) {
-        var validSize = (size == null || size > 10) ? 10 : size;
-        var validFrom = (from == null || from < 0) ? 0 : from;
-        SortOrder sortOrder = sort == null ? SortOrder.ASCENDING : SortOrder.from(sort);
+        if (size < 0 || from < 0) {
+            throw new ParameterNotValidException(size.toString(), "Некорректный размер выборки. Размер должен быть больше нуля");
+        }
+
+        var validSize = (size > 10) ? 10 : size;
+        SortOrder sortOrder = SortOrder.from(sort);
+        if (sortOrder == null) {
+            throw new ParameterNotValidException("sort", "Получено: " + sort + " должно быть: ask или desc");
+        }
         Comparator<Post> comparator = Comparator.comparing(Post::getPostDate);
         if (sortOrder == SortOrder.DESCENDING) {
             comparator = comparator.reversed();
@@ -27,11 +34,11 @@ public class PostService {
         List<Post> sortedPosts = posts.values().stream().sorted(comparator).toList();
 
         // Проверка: если `from` больше количества постов, корректируем его
-        if (validFrom >= sortedPosts.size()) {
-            validFrom = Math.max(0, sortedPosts.size() - validSize);
+        if (from >= sortedPosts.size()) {
+            from = Math.max(0, sortedPosts.size() - validSize);
         }
         return sortedPosts.stream()
-                .skip(validFrom)
+                .skip(from)
                 .limit(validSize)
                 .toList();
     }
