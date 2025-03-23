@@ -1,7 +1,6 @@
 package ru.yandex.practicum.catsgram.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 public class ImageService {
     private final Map<Long, Image> images = new HashMap<>();
     private final PostService postService;
-    @Value("${catsgram.image-directory}")
+//    @Value("${catsgram.image-directory}")
     private String imageDirectory;
 
     public List<Image> getPostImages(long postId) {
